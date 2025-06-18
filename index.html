@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แสดงคะแนนนักเรียน</title>
+  <style>
+    body {
+      font-family: Tahoma, sans-serif;
+      padding: 20px;
+      background-color: #f7f9fc;
+    }
+    h2 {
+      color: #2c3e50;
+    }
+    input, button {
+      font-size: 16px;
+      padding: 8px;
+      margin: 5px 0;
+    }
+    button {
+      background-color: #0073aa;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005f8d;
+    }
+    #loadingMessage {
+      color: blue;
+      margin-top: 10px;
+    }
+    #errorMessage {
+      color: red;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+    }
+    td {
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    .left-col {
+      width: 50%;
+      background-color: #f0f0f0;
+    }
+    .right-col {
+      width: 50%;
+    }
+  </style>
+</head>
+<body>
+  <h2>ตรวจคะแนน <small>* อัพเดท 20/05/68 เวลา: 12.11 น. *</small></h2>
+
+  <input type="text" id="studentId" placeholder="กรอก Student ID" onkeypress="handleKeyPress(event)" />
+  <button onclick="fetchData()">ค้นหา</button>
+
+  <p id="loadingMessage" style="display: none;">กำลังโหลดข้อมูล...</p>
+  <p id="errorMessage"></p>
+
+  <table id="resultTable" style="display: none;">
+    <tbody>
+      <tr><td class="left-col">ชื่อ: <span id="name"></span></td><td class="right-col"></td></tr>
+      <tr><td class="left-col">Quiz 1 5% : <span id="quiz1"></span></td><td class="right-col">Quiz 5 5% : <span id="quiz6"></span></td></tr>
+      <tr><td class="left-col">Quiz 2 5% : <span id="quiz2"></span></td><td class="right-col">Quiz 6 5% : <span id="quiz7"></span></td></tr>
+      <tr><td class="left-col">Quiz 3 5% : <span id="quiz3"></span></td><td class="right-col">Quiz 7 5% : <span id="quiz8"></span></td></tr>
+      <tr><td class="left-col">Quiz 4 5% : <span id="quiz4"></span></td><td class="right-col">รวม Quiz 5-7 15% : <span id="quiz9"></span></td></tr>
+      <tr><td class="left-col">รวม Quiz 1-4 20% : <span id="quiz5"></span></td><td class="right-col"></td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    async function fetchData() {
+      const studentIdInput = document.getElementById("studentId").value.trim().toUpperCase();
+      const errorMessage = document.getElementById("errorMessage");
+      const loadingMessage = document.getElementById("loadingMessage");
+      const resultTable = document.getElementById("resultTable");
+
+      if (!studentIdInput) {
+        errorMessage.innerText = "กรุณากรอก Student ID";
+        return;
+      }
+
+      errorMessage.innerText = "";
+      resultTable.style.display = "none";
+      loadingMessage.style.display = "block";
+
+      const apiUrl = `https://script.google.com/macros/s/AKfycbyPlu5_G0Jn40WOI1lWYm4_AhgJawvYREGzd0zA0eSKk3hYtEzjugF_n2y50ETDaJEm/exec?studentId=${studentIdInput}`;
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("ไม่สามารถเชื่อมต่อ API");
+
+        const data = await response.json();
+
+        if (data.status === "success") {
+          document.getElementById("name").innerText = data.data?.name ?? "-";
+          document.getElementById("quiz1").innerText = data.data?.quiz1 ?? "-";
+          document.getElementById("quiz2").innerText = data.data?.quiz2 ?? "-";
+          document.getElementById("quiz3").innerText = data.data?.quiz3 ?? "-";
+          document.getElementById("quiz4").innerText = data.data?.quiz4 ?? "-";
+          document.getElementById("quiz5").innerText = data.data?.quiz5 ?? "-";
+          document.getElementById("quiz6").innerText = data.data?.quiz6 ?? "-";
+          document.getElementById("quiz7").innerText = data.data?.quiz7 ?? "-";
+          document.getElementById("quiz8").innerText = data.data?.quiz8 ?? "-";
+          document.getElementById("quiz9").innerText = data.data?.quiz9 ?? "-";
+
+          resultTable.style.display = "table";
+          errorMessage.innerText = "";
+        } else {
+          resultTable.style.display = "none";
+          errorMessage.innerText = data.message || "ไม่พบข้อมูล";
+        }
+      } catch (error) {
+        resultTable.style.display = "none";
+        errorMessage.innerText = "เกิดข้อผิดพลาดในการดึงข้อมูล";
+      } finally {
+        loadingMessage.style.display = "none";
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        fetchData();
+      }
+    }
+  </script>
+</body>
+</html>
